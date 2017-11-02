@@ -113,9 +113,12 @@ void CALLBACK display(void)
 	// glClear( GL_DEPTH_BUFFER_BIT );
 	glPushMatrix();
 	glTranslated(0., 0., -6.0);
-	//glRotated(35., 0., 0., 0.);
-	//glRotated(-35., 0., 0., 0.);
-	glRotated(45, gl, gl, 0.);
+	//glRotated(35., 1., 0., 0.);
+	//glRotated(-35., 0., 1., 0.);
+
+	//glRotated(90, 0., 1., 0.);
+	glRotated(gl, 1., 1., 1.);
+
 	gl = gl + 0.01;
 	glPointSize(10.0f);
 	glEnable(GL_POINT_SMOOTH);
@@ -319,15 +322,15 @@ void CALLBACK display(void)
 	glColor3d(100, 0, 0);
 
 	amountSegments = 50;
-	x = -1; //begin
-	y = 1; // end
+	x = -0.05; //begin
+	y = 2.02; // end
 	float lin = (abs(x) + abs(y)) / amountSegments;
 
 	for (size_t i = 0; i < amountSegments; i++)
 	{
 		
 		x = x + lin;
-		glVertex3f(0, 1, x);
+		glVertex3f(1, 2, x);
 		
 
 		//std::cout << x << std::endl;
