@@ -1,0 +1,3 @@
+﻿glaux.lib(tk.obj) : error LNK2019: unresolved external symbol _sscanf referenced in function _GetRegistrySysColors@8
+glaux.lib(tk.obj) : error LNK2019: unresolved external symbol _vsprintf referenced in function _PrintMessage
+C:\Users\aborisco\Desktop\for test\3d\OpenGL\ConsoleApplication1\Debug\ConsoleApplication1.exe : fatal error LNK1120: 2 unresolved externals
