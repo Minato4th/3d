@@ -11,30 +11,21 @@
 
 #include <math.h>
 
-#include<cmath>
+#include <cmath>
 #include <iostream>
 
-#define RADGRAD 0.0174532925199433
-
-#define MAXH 150
-#define MAXS 150
-
-#define MAX_STEPS   25.0f       // Число шагов, составляющих линию
-
+#define kSpeed  0.03f 
 #define INITIAL 1
 #define POINTS 20
 #define HIGHT 1.25
 #define SECTORS 2
 
 
-
-// Создадим простенький класс для хранения вершин
 struct CVector3
 {
 public:
 	double x, y, z;
 };
-
 
 CVector3 PointOnCurve(CVector3 p1, CVector3 p2, CVector3 p3, CVector3 p4, double t)
 {
@@ -90,23 +81,17 @@ Bizie::Bizie(double maxstp, double overal, double height, double sect, double g_
 
 	vPoint = { 0.0f, 0.0f, 0.0f };
 
-	//glBegin(GL_TRIANGLE_FAN);
-	//glVertex3d(0., 0., 0.);
 	int count = 0;
 	for (double t = 0; t <= (1 + (1.0f / overal)); t += 1.0f / overal)
 	{
 		vPoint = PointOnCurve(g_vStartPoint, g_vControlPoint1, g_vControlPoint2, g_vEndPoint, t);
 		Points[0][count] = vPoint;
 		count++;
-		//glVertex3f(vPoint.x, vPoint.y, vPoint.z);
 	}
-
-	//glEnd();
 
 	count = 0;
 	for (size_t i = 0; i < sectors; i++)
 	{
-		//glBegin(GL_TRIANGLE_STRIP);
 
 		vPoint = { 0.0f, 0.0f, 0.0f };
 
@@ -121,7 +106,6 @@ Bizie::Bizie(double maxstp, double overal, double height, double sect, double g_
 			vPoint = PointOnCurve(g_vStartPoint, g_vControlPoint1, g_vControlPoint2, g_vEndPoint, t);
 			Points[1][count] = vPoint;
 			count++;
-			//glVertex3f(vPoint.x, vPoint.y, vPoint.z);
 
 			maxsteps += step;
 
@@ -133,14 +117,11 @@ Bizie::Bizie(double maxstp, double overal, double height, double sect, double g_
 			vPoint = PointOnCurve(g_vStartPoint, g_vControlPoint1, g_vControlPoint2, g_vEndPoint, t);
 			Points[1][count] = vPoint;
 			count++;
-			//glVertex3f(vPoint.x, vPoint.y, vPoint.z);
 
 			maxsteps -= step;
 		}
 
 		maxsteps += step;
-
-		//glEnd();
 	}
 }
 
@@ -175,132 +156,288 @@ void Bizie::drawBizie()
 		}
 	}
 	
-	
-}
+};
 
 class Lines
 {
-protected:
+	protected:
 
-	double maxsteps;
-	double heightsegm;
-	double sectors;
-	double points;
+		double maxsteps;
+		double heightsegm;
+		double sectors;
+		double points;
 
-	double x;
-	double y;
-	double z;
+		CVector3 vPoint;
+		CVector3 Points[2][POINTS * 2 * (SECTORS)+SECTORS * 2];
 
-	double x_change;
-	double y_change;
-	double z_change;
-	double x_lin;
-	double y_lin;
-	double z_lin;
+	public:
+		Lines(double, double, double, double, double, double, double, double, double, double);
+		void drawLine();
+}; 
 
-public:
-	Lines(double, double, double, double, double, double, double, double, double, double, double, double, double, double, double, double);
-	void drawLine();
+Lines::Lines(double maxstp, double overal, double height, double sect, double X_start, double Y_start, double Z_start, double X_end, double Y_end, double Z_end){
+
+	maxsteps = maxstp;
+	heightsegm = height;
+	sectors = sect;
+	points = overal;
+	double step = heightsegm / sectors;
+
+	double x_change = X_start * maxsteps;
+	double y_change = Y_start * maxsteps;
+	double z_change = Z_start * maxsteps;
+	double x_lin = X_end * maxsteps / points;
+	double y_lin = Y_end * maxsteps / points;
+	double z_lin = Z_end * maxsteps / points;
+
+
+	for (size_t i = 0; i < points; i++)
+	{
+		if (i != 0)
+		{
+			x_change = x_change + x_lin;
+			y_change = y_change + y_lin;
+			z_change = z_change + z_lin;
+		}
+		
+		vPoint = { x_change, y_change, z_change };
+		Points[0][i] = (vPoint);
+
+	}
+
+	int count = 0;
+	for (size_t i = 0; i < sectors; i++)
+	{
+
+		x_change = X_start * maxsteps;
+		y_change = Y_start * maxsteps;
+		z_change = Z_start * maxsteps;
+		x_lin = X_end * maxsteps / points;
+		y_lin = Y_end * maxsteps / points;
+		z_lin = Z_end * maxsteps / points;
+
+		maxsteps += step;
+		double x_change1 = X_start * maxsteps;
+		double y_change1 = Y_start * maxsteps;
+		double z_change1 = Z_start * maxsteps;
+		double x_lin1 = X_end * maxsteps / points;
+		double y_lin1 = Y_end * maxsteps / points;
+		double z_lin1 = Z_end * maxsteps / points;
+		
+		for (size_t i = 0; i < points; i++)
+		{
+
+			if (i != 0)
+			{
+				x_change = x_change + x_lin;
+				y_change = y_change + y_lin;
+				z_change = z_change + z_lin;
+			}
+
+
+			vPoint = { x_change, y_change, z_change };
+			Points[1][count] = (vPoint);
+
+			count++;
+
+			if (i != 0)
+			{
+				x_change1 = x_change1 + x_lin1;
+				y_change1 = y_change1 + y_lin1;
+				z_change1 = z_change1 + z_lin1;
+			}
+
+			vPoint = { x_change1, y_change1, z_change1 };
+			Points[1][count] = (vPoint);
+			
+			count++;
+		}
+
+	}
+
 }
 
-Lines::Lines(double maxstp, double overal, double height, double sect, double g_spX, double g_spY, double g_spZ, double g_cp1X, double g_cp1Y, double g_cp1Z, double g_cp2X,
-	double g_cp2Y, double g_cp2Z, double g_epX, double g_epY, double g_epZ)
+void Lines::drawLine()
 {
+	for (double e = -1; e < 2; e += 2)
+	{
+		glBegin(GL_TRIANGLE_FAN);
+		glVertex3d(0., 0., 0.);
 
+		for (int t = 0; t < points; t++)
+		{
+			glVertex3f(Points[0][t].x, Points[0][t].y, e*Points[0][t].z);
+		}
+
+		glEnd();
+
+
+		int counter = 0;
+		for (size_t i = 0; i < sectors; i++)
+		{
+			glBegin(GL_TRIANGLE_STRIP);
+
+			for (int t = 0; t < points * 2; t++)
+			{
+				glVertex3f(Points[1][counter].x, Points[1][counter].y, e*Points[1][counter].z);
+				counter++;
+			}
+			//counter += -1;
+
+			glEnd();
+		}
+	}
 }
 
-//class cone0
-//{
-//protected:
-//	int nh;
-//	int ns;
-//	double c[MAXH][MAXS][3];
-//public:
-//	cone0(int, int);
-//	void drawcon();
-//};
-//
-//cone0::cone0(int heightsegm, int sectors)
-//{
-//	int i, j;
-//	nh = heightsegm;
-//	ns = sectors;
-//	if (nh > MAXH)
-//		nh = MAXH;
-//	else
-//		if (nh < 1)
-//			nh = 10;
-//	if (ns > MAXS)
-//		ns = MAXS;
-//	else
-//		if (ns < 3)
-//			ns = 10;
-//	double hstep = 1.0 / nh;
-//	double astep = -360.0 / ns;
-//	double hcur, acur, rcur;
-//	hcur = 0.0;
-//	for (i = 0; i<nh; i++)
-//	{
-//		hcur += hstep;
-//		acur = 0.0;
-//		rcur = hcur;
-//		for (j = 0; j<ns; j++)
-//		{
-//			c[i][j][0] = rcur*cos(RADGRAD*acur);
-//			c[i][j][1] = rcur*sin(RADGRAD*acur);
-//			c[i][j][2] = hcur;
-//			acur += astep;
-//		}
-//	}
-//}
-//void cone0::drawcon()
-//{
-//	int i, j;
-//	glBegin(GL_TRIANGLE_FAN);
-//	glVertex3d(0., 0., 0.);
-//	for (j = 0; j<ns; j++)
-//		glVertex3dv(c[0][j]);
-//	glVertex3dv(c[0][0]);
-//	glEnd();
-//	for (i = 0; i<nh - 1; i++)
-//	{
-//		glBegin(GL_TRIANGLE_STRIP);
-//		for (j = 0; j<ns; j++)
-//		{
-//			glVertex3dv(c[i + 1][j]);
-//			glVertex3dv(c[i][j]);
-//		}
-//		glVertex3dv(c[i + 1][0]);
-//		glVertex3dv(c[i][0]);
-//		glEnd();
-//	}
-//}
-//static cone0 c1(10, 30);
 
 static Bizie bizie1(INITIAL, POINTS, HIGHT, SECTORS, -2, 0.5, 1, -1, 0.3, 1, -1, -0.3, 1, -2, -0.5, 1);
 static Bizie bizie2(INITIAL, POINTS, HIGHT, SECTORS, 2, 0.5, 1, 1, 0.3, 1, 1, -0.3, 1, 2, -0.5, 1);
 
+static Lines line1(INITIAL, POINTS, HIGHT, SECTORS, -1.25, 0, 1, 2.6315, 0, 0);
+static Lines line2(INITIAL, POINTS, HIGHT, SECTORS, 0, -1.25, 1, 0, 2.6315, 0);
 
+static Lines lLine1(INITIAL, POINTS, HIGHT, SECTORS, 0, -1.25, 1, 0.7, -0.7, 0);
+static Lines lLine2(INITIAL, POINTS, HIGHT, SECTORS, 0, -1.25, 1, -0.7, -0.7, 0);
+static Lines lLine3(INITIAL, POINTS, HIGHT, SECTORS, 0, 1.25, 1, -0.7, 0.7, 0);
+static Lines lLine4(INITIAL, POINTS, HIGHT, SECTORS, 0, 1.25, 1, 0.7, 0.7, 0);
+
+
+// *Camera Class*
+// Будет использоватся для запоминания позиции камеры, нашего взгляда и вертикального вектора.
+// Сейчас у нас есть 3 CVector'а, которые будут запоминать эту информацию.
+// Кроме того, пара вспомогательных функций. Мы сделаем все данные 
+// public, чтобы в любой момент узнать свою позицию.
+// Т.к. все данные - public, можно было использовать структуру. 
+// Но я стараюсь все, что содержит в себе методы, делать классом.
+
+class CCamera {
+
+public:
+
+	CVector3 m_vPosition;   // Позиция камеры.
+	CVector3 m_vView;   // Направление камеры.
+	CVector3 m_vUpVector;   // Вертикальный вектор.
+			
+	CCamera();// Конструктор класса Camera
+
+	// Тут изменяется положение, направление и верт. вектор камеры.
+	// В основном используется при инициализации.
+	void PositionCamera(float positionX, float positionY, float positionZ, float viewX, float viewY, float viewZ, 
+		float upVectorX, float upVectorY, float upVectorZ);
+
+	// Эта ф-я передвигает камеру вперед/назад
+	void MoveCamera(float speed);
+};
+
+// Ну и наконец добавим глобальную переменную данных камеры.
+//extern CCamera  g_Camera;           // Глобальные данные камеры
+
+
+CCamera::CCamera()
+{
+	CVector3 vZero = { 0.0, 0.0, 0.0 };		//Инициализируем вектор нашей позиции в нулевые координаты
+	CVector3 vView = { 0.0, 1.0, 0.5 };     // Иниц. вектор взгляда
+	CVector3 vUp = { 0.0, 0.0, 1.0 };       // Вертикальный вектор
+
+	m_vPosition = vZero;
+	m_vView = vView;
+	m_vUpVector = vUp;
+}
+
+
+/////   Устанавливает позицию, взгляд, верт. вектор камеры
+
+GLvoid CCamera::PositionCamera(float positionX, float positionY, float positionZ,float viewX, float viewY, float viewZ,
+	float upVectorX, float upVectorY, float upVectorZ)
+{
+	CVector3 vPosition = { positionX, positionY, positionZ };
+	CVector3 vView = { viewX, viewY, viewZ };
+	CVector3 vUpVector = { upVectorX, upVectorY, upVectorZ };
+
+	//Обширный код просто делает легче назначение переменных.
+	//Можно просто сразу присвоить переменным класса переданные функции значения.
+
+	m_vPosition = vPosition;
+	m_vView = vView;
+	m_vUpVector = vUpVector;
+}
+
+
+/////   Движение камеры вперед-назад с заданной скоростью
+void CCamera::MoveCamera(float speed)
+{
+	CVector3 vVector = { 0 };     //Иниц. вектор направления взгляда
+
+	// Получаем вектор направления. Чтобы получить вектор из 2х 
+	// точек, мы вычитаем первую точку из второй.
+	// Это дает нам направление, куда мы смотрим. 
+	// Позже мы напишем ф-ю, вычисляющую направление
+	// по-другому.
+
+	//Получаем направление взгляда (напр-е, куда мы повернуты "лицом")
+	vVector.x = m_vView.x - m_vPosition.x;      //Направление по X
+	vVector.y = m_vView.y - m_vPosition.y;      //Направление по Y
+	vVector.z = m_vView.z - m_vPosition.z;      //Направление по Z
+
+	// Следующий код двигает камеру вперед или назад.
+	// Мы прибавляем к текущему положению направление взгляда, помноженное на скорость.
+	// Может быть, вы думаете, что проще было бы просто прибавить к позиции скорость. Да,
+	// сейчас это сработает - вы смотрите прямо по оси Х. Но как только начнется вращение, код
+	// перестанет действовать. Поверьте мне.
+	// Итак, если мы смотрим в направлении 45 градусов, мы и пойдем в этом направлении.
+	// Если движемся назад - просто передаём в ф-ю отрицательную скорость.
+
+	m_vPosition.x += vVector.x * speed;
+	m_vPosition.z += vVector.z * speed;
+	m_vView.x += vVector.x * speed;
+	m_vView.y += vVector.z * speed;
+}
+
+CCamera g_Camera;
+
+//void Init(HWND hWnd)
+//{
+//	g_hWnd = hWnd;
+//	GetClientRect(g_hWnd, &g_rRect);
+//	InitializeOpenGL(g_rRect.right, g_rRect.bottom);
+//
+//	Font = new CFont("arial.ttf", 16, 16);
+//	FPS = 0;
+//
+//	// Ниже мы инициализируем камеру. Устанавливаем позицию, из которой будем смотреть на
+//	// цветной треугольник.
+//	// Помните, эта инициализация необходима только _единожды_, 
+//	// и больше мы её вызывать не будем.
+//
+//	//          Позиция      Напр-е     верт. вектор
+//	g_Camera.PositionCamera(0, 0.5f, 6, 0, 0.5f, 0, 0, 1, 0);
+//}
 
 void CALLBACK resize(int width, int height)
 {
-	// Здесь указывается часть окна в пределах которой
-	// будут рисовать функции OpenGL.
 	GLuint wp = width<height ? width - 20 : height - 20;
 	glViewport(10, 10, wp, wp);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	// Устанавливаем тип проекции.
-	// glOrtho - параллельная
-	// glFrustum - перспектива
-	// Параметры о обеих функции идентичны:
-	// они задают объем видимости
 	glOrtho(-6.2, 6.2, -6.2, 6.2, 2., 12.);
 	// glFrustum(-5,5, -5,5, 2,12);
 	glMatrixMode(GL_MODELVIEW);
+
+	g_Camera.PositionCamera(0, 0.5f, 6, 0, 0.5f, 0, 0, 1, 0);
+	
 }
 
 GLdouble gl = 90;
+
+void CALLBACK Key_DOWN(void)
+{
+	g_Camera.MoveCamera(-kSpeed);
+}
+void CALLBACK Key_UP(void)
+{
+	g_Camera.MoveCamera(kSpeed);
+	//RenderScene();      // Перерисовываем сцену
+}
 
 void CALLBACK display(void)
 {
@@ -313,8 +450,11 @@ void CALLBACK display(void)
 	//glRotated(-35., 0., 1., 0.);
 
 	//glRotated(45, 0., 1., 0.);
-	glRotated(gl, 1., 1., 1.);
+	//glRotated(gl, 1., 1., 1.);
 	//glRotated(gl, 0., 1., 0.);
+	gluLookAt(g_Camera.m_vPosition.x, g_Camera.m_vPosition.y, g_Camera.m_vPosition.z,
+		g_Camera.m_vView.x, g_Camera.m_vView.y, g_Camera.m_vView.z,
+		g_Camera.m_vUpVector.x, g_Camera.m_vUpVector.y, g_Camera.m_vUpVector.z);
 
 	gl = gl + 0.01;
 	glPointSize(10.0f);
@@ -365,1207 +505,32 @@ void CALLBACK display(void)
 	auxSolidCone(0.1f, 0.2f);
 	glPopMatrix();
 	//VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-	// Здесь будем вставлять фрагменты кода для различных примеров
-	// в процессе изучения функций OpenGL
-
-	
-	////bizie1
-
-	//double g_CurrentTime = 0.0f; // Текущая позиция сферы на кривой (между 0 и 1)
-
-	//CVector3 g_vStartPoint = { 0.16,  2,  3 };   // Стартовая точка кривой
-	//CVector3 g_vControlPoint1 = { 0.66,  2,  1.65 };   // Первая контрольная точка
-	//CVector3 g_vControlPoint2 = { 1.3,  2,  1.65 };   // Вторая контрольная точка
-	//CVector3 g_vEndPoint = { 1.88,  2,  3 };   // Конечная точка кривой
 
 
-	//CVector3 vPoint = { 0.0f, 0.0f, 0.0f };
-
-	//glBegin(GL_LINE_STRIP);
-	//for (double t = 0; t <= (1 + (1.0f / MAX_STEPS)); t += 1.0f / MAX_STEPS)
-	//{
-
-	//	vPoint = PointOnCurve(g_vStartPoint, g_vControlPoint1, g_vControlPoint2, g_vEndPoint, t);
-
-	//	glVertex3f(vPoint.x, vPoint.y, vPoint.z);
-	//}
-
-	//glEnd();
-
-	////bizie2
-	//g_CurrentTime = 0.0f; // Текущая позиция сферы на кривой (между 0 и 1)
-
-	//g_vStartPoint = { 0.16,  2,  -3 };   // Стартовая точка кривой
-	//g_vControlPoint1 = { 0.66,  2,  -1.65 };   // Первая контрольная точка
-	//g_vControlPoint2 = { 1.3,  2, -1.65 };   // Вторая контрольная точка
-	//g_vEndPoint = { 1.88,  2,  -3 };   // Конечная точка кривой
-
-	//vPoint = { 0.0f, 0.0f, 0.0f };
-
-	//glBegin(GL_LINE_STRIP);
-	//for (double t = 0; t <= (1 + (1.0f / MAX_STEPS)); t += 1.0f / MAX_STEPS)
-	//{
-
-	//	vPoint = PointOnCurve(g_vStartPoint, g_vControlPoint1, g_vControlPoint2, g_vEndPoint, t);
-
-	//	glVertex3f(vPoint.x, vPoint.y, vPoint.z);
-	//}
-
-	//glEnd();
-
-	//////////////////////////////////////////////////////////////////////////
-	////// для изменения верх и в низ влево и в право назад и вперёд ничего не надо менять
-	////// для изменения угла x z при увелечении / уменьшения x необходимо сделать обратное для z
-	////// для изменения угла x y z при уменьшении / увеличении y необходимо убрать / добвать в два раза больше для x z
-	/////////////////////////////////////////////////////////////////////////
-	
-
-
-	////bizie1
-	//double g_CurrentTime = 0.0f; // Текущая позиция сферы на кривой (между 0 и 1)
-
-	//CVector3 g_vStartPoint = { -0.2,  0.9,  3.8 };   // Стартовая точка кривой
-	//CVector3 g_vControlPoint1 = { 0.4,  0.9,  3.2 };   // Первая контрольная точка
-	//CVector3 g_vControlPoint2 = { 0.8, 0.1, 3.6 };   // Вторая контрольная точка
-	//CVector3 g_vEndPoint = { 0.2, 0.1, 4.2 };   // Конечная точка кривой
-
-	//CVector3 vPoint = { 0.0f, 0.0f, 0.0f };
-
-	//glBegin(GL_LINE_STRIP);
-	//for (double t = 0; t <= (1 + (1.0f / MAX_STEPS)); t += 1.0f / MAX_STEPS)
-	//{
-
-	//	vPoint = PointOnCurve(g_vStartPoint, g_vControlPoint1, g_vControlPoint2, g_vEndPoint, t);
-
-	//	glVertex3f(vPoint.x, vPoint.y, vPoint.z);
-	//}
-
-	//glEnd();
-
-	////bizie2
-	//g_CurrentTime = 0.0f; // Текущая позиция сферы на кривой (между 0 и 1)
-
-	//g_vStartPoint = { 3.8,  0.9,  -0.2 };   // Стартовая точка кривой
-	//g_vControlPoint1 = { 3.2,  0.9, 0.4 };   // Первая контрольная точка
-	//g_vControlPoint2 = { 3.6, 0.1, 0.8 };   // Вторая контрольная точка
-	//g_vEndPoint = { 4.2, 0.1, 0.2 };   // Конечная точка кривой
-
-	//vPoint = { 0.0f, 0.0f, 0.0f };
-
-	//glBegin(GL_LINE_STRIP);
-	//for (double t = 0; t <= (1 + (1.0f / MAX_STEPS)); t += 1.0f / MAX_STEPS)
-	//{
-
-	//	vPoint = PointOnCurve(g_vStartPoint, g_vControlPoint1, g_vControlPoint2, g_vEndPoint, t);
-
-	//	glVertex3f(vPoint.x, vPoint.y, vPoint.z);
-	//}
-
-	//glEnd();
-
-
-	double pr = 1; // от ноля до + бесконечности(надо додумать в зависимости от проекции)
-	//bizie3
 
 	glPushMatrix();
-	glTranslated(0., 0., 0.);
-	glScaled(1., 1., 1.);
+		glTranslated(0., 0., 0.);
+		glScaled(1., 1., 1.);
 	
-	//glRotated(45, 0, 1, 1);
+		//glRotated(45, 0, 1, 1);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	
-	bizie1.drawBizie();
-	bizie2.drawBizie();
-
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	//double g_spX = -2;
-	//double g_spY = 0.5;
-	//double g_spZ = 1; //-
-	//double g_cp1X = -1;
-	//double g_cp1Y = 0.3;
-	//double g_cp1Z = 1; // -
-	//double g_cp2X = -1;
-	//double g_cp2Y = -0.3;
-	//double g_cp2Z = 1; //-
-	//double g_epX = -2;
-	//double g_epY = -0.5;
-	//double g_epZ = 1; // -
-
-	//CVector3 g_vStartPoint = { g_spX * pr,  g_spY * pr,  g_spZ * pr };   // Стартовая точка кривой
-	//CVector3 g_vControlPoint1 = { g_cp1X * pr, g_cp1Y  * pr,  g_cp1Z * pr };   // Первая контрольная точка
-	//CVector3 g_vControlPoint2 = { g_cp2X * pr,  g_cp2Y * pr,  g_cp2Z * pr };   // Вторая контрольная точка
-	//CVector3 g_vEndPoint = {  g_epX * pr,  g_epY * pr,  g_epZ * pr };   // Конечная точка кривой
-
-	//CVector3 vPoint = { 0.0f, 0.0f, 0.0f };
-
-	//double g_CurrentTime = 0.0f; // Текущая позиция сферы на кривой (между 0 и 1)
-
-	///*glBegin(GL_TRIANGLE_FAN);
-	//glVertex3d(0., 0., 0.);
-
-	//for (double t = 0; t <= (1 + (1.0f / MAX_STEPS)); t += 1.0f / MAX_STEPS)
-	//{
-	//	vPoint = PointOnCurve(g_vStartPoint, g_vControlPoint1, g_vControlPoint2, g_vEndPoint, t);
-	//	glVertex3f(vPoint.x, vPoint.y, vPoint.z);
-	//}
-
-	//glEnd();*/
-
-	double initial = pr;
-	double start = pr;
-	double step = 0.05;
-	////for (size_t i = 0; i < MAX_STEPS; i++)
-	////{
-	////	glBegin(GL_TRIANGLE_STRIP);
-
-	////	vPoint = { 0.0f, 0.0f, 0.0f };
-
-	////	for (double t = 0; t <= (1 + (1.0f / MAX_STEPS)); t += 1.0f / MAX_STEPS)
-	////	{
-	////		
-	////		g_vStartPoint = { g_spX * pr,  g_spY * pr,  g_spZ * pr };   // Стартовая точка кривой
-	////		g_vControlPoint1 = { g_cp1X * pr, g_cp1Y  * pr,  g_cp1Z * pr };   // Первая контрольная точка
-	////		g_vControlPoint2 = { g_cp2X * pr,  g_cp2Y * pr,  g_cp2Z * pr };   // Вторая контрольная точка
-	////		g_vEndPoint = { g_epX * pr,  g_epY * pr,  g_epZ * pr };   // Конечная точка кривой
-
-	////		vPoint = PointOnCurve(g_vStartPoint, g_vControlPoint1, g_vControlPoint2, g_vEndPoint, t);
-	////		glVertex3f(vPoint.x, vPoint.y, vPoint.z);
-
-	////		pr += step;
-
-	////		g_vStartPoint = { g_spX * pr,  g_spY * pr,  g_spZ * pr };   // Стартовая точка кривой
-	////		g_vControlPoint1 = { g_cp1X * pr, g_cp1Y  * pr,  g_cp1Z * pr };   // Первая контрольная точка
-	////		g_vControlPoint2 = { g_cp2X * pr,  g_cp2Y * pr,  g_cp2Z * pr };   // Вторая контрольная точка
-	////		g_vEndPoint = { g_epX * pr,  g_epY * pr,  g_epZ * pr };   // Конечная точка кривой
-
-	////		vPoint = PointOnCurve(g_vStartPoint, g_vControlPoint1, g_vControlPoint2, g_vEndPoint, t);
-	////		glVertex3f(vPoint.x, vPoint.y, vPoint.z);
-
-	////		pr -= step;
-	////	}
-
-	////	start = pr + step;
-	////	if (start - pr > 0)
-	////	{
-	////		pr += step;
-	////	}
-
-	////	glEnd();
-
-	////}
-	//
-	//pr = initial;
-
-	//g_spX = -2;
-	//g_spY = 0.5;
-	//g_spZ = -1; //-
-	//g_cp1X = -1;
-	//g_cp1Y = 0.3;
-	//g_cp1Z = -1; // -
-	//g_cp2X = -1;
-	//g_cp2Y = -0.3;
-	//g_cp2Z = -1; //-
-	//g_epX = -2;
-	//g_epY = -0.5;
-	//g_epZ = -1; // -
-
-	//g_vStartPoint = { g_spX * pr,  g_spY * pr,  g_spZ * pr };   // Стартовая точка кривой
-	//g_vControlPoint1 = { g_cp1X * pr, g_cp1Y  * pr,  g_cp1Z * pr };   // Первая контрольная точка
-	//g_vControlPoint2 = { g_cp2X * pr,  g_cp2Y * pr,  g_cp2Z * pr };   // Вторая контрольная точка
-	//g_vEndPoint = { g_epX * pr,  g_epY * pr,  g_epZ * pr };   // Конечная точка кривой
-
-
-
-	//vPoint = { 0.0f, 0.0f, 0.0f };
-
-
-	////bizie4
-	//g_spX = 2;
-	//g_spY = 0.5;
-	//g_spZ = 1; //-
-	//g_cp1X = 1;
-	//g_cp1Y = 0.3;
-	//g_cp1Z = 1; // -
-	//g_cp2X = 1;
-	//g_cp2Y = -0.3;
-	//g_cp2Z = 1; //-
-	//g_epX = 2;
-	//g_epY = -0.5;
-	//g_epZ = 1; // -
-
-	//g_vStartPoint = { g_spX * pr,  g_spY * pr,  g_spZ * pr };   // Стартовая точка кривой
-	//g_vControlPoint1 = { g_cp1X * pr, g_cp1Y  * pr,  g_cp1Z * pr };   // Первая контрольная точка
-	//g_vControlPoint2 = { g_cp2X * pr,  g_cp2Y * pr,  g_cp2Z * pr };   // Вторая контрольная точка
-	//g_vEndPoint = { g_epX * pr,  g_epY * pr,  g_epZ * pr };   // Конечная точка кривой
-
-
-
-	//vPoint = { 0.0f, 0.0f, 0.0f };
-
-	//g_CurrentTime = 0.0f; // Текущая позиция сферы на кривой (между 0 и 1)
-
-	//glBegin(GL_TRIANGLE_FAN);
-	//glVertex3d(0., 0., 0.);
-
-	//for (double t = 0; t <= (1 + (1.0f / MAX_STEPS)); t += 1.0f / MAX_STEPS)
-	//{
-	//	vPoint = PointOnCurve(g_vStartPoint, g_vControlPoint1, g_vControlPoint2, g_vEndPoint, t);
-	//	glVertex3f(vPoint.x, vPoint.y, vPoint.z);
-	//}
-
-	//glEnd();
-
-	//start = pr;
-	//step = 0.05;
-	//for (size_t i = 0; i < MAX_STEPS; i++)
-	//{
-	//	glBegin(GL_TRIANGLE_STRIP);
-
-	//	vPoint = { 0.0f, 0.0f, 0.0f };
-
-	//	for (double t = 0; t <= (1 + (1.0f / MAX_STEPS)); t += 1.0f / MAX_STEPS)
-	//	{
-
-	//		g_vStartPoint = { g_spX * pr,  g_spY * pr,  g_spZ * pr };   // Стартовая точка кривой
-	//		g_vControlPoint1 = { g_cp1X * pr, g_cp1Y  * pr,  g_cp1Z * pr };   // Первая контрольная точка
-	//		g_vControlPoint2 = { g_cp2X * pr,  g_cp2Y * pr,  g_cp2Z * pr };   // Вторая контрольная точка
-	//		g_vEndPoint = { g_epX * pr,  g_epY * pr,  g_epZ * pr };   // Конечная точка кривой
-
-	//		vPoint = PointOnCurve(g_vStartPoint, g_vControlPoint1, g_vControlPoint2, g_vEndPoint, t);
-	//		glVertex3f(vPoint.x, vPoint.y, vPoint.z);
-
-	//		pr += step;
-
-	//		g_vStartPoint = { g_spX * pr,  g_spY * pr,  g_spZ * pr };   // Стартовая точка кривой
-	//		g_vControlPoint1 = { g_cp1X * pr, g_cp1Y  * pr,  g_cp1Z * pr };   // Первая контрольная точка
-	//		g_vControlPoint2 = { g_cp2X * pr,  g_cp2Y * pr,  g_cp2Z * pr };   // Вторая контрольная точка
-	//		g_vEndPoint = { g_epX * pr,  g_epY * pr,  g_epZ * pr };   // Конечная точка кривой
-
-	//		vPoint = PointOnCurve(g_vStartPoint, g_vControlPoint1, g_vControlPoint2, g_vEndPoint, t);
-	//		glVertex3f(vPoint.x, vPoint.y, vPoint.z);
-
-	//		pr -= step;
-	//	}
-
-	//	start = pr + step;
-	//	if (start - pr > 0)
-	//	{
-	//		pr += step;
-	//	}
-
-	//	glEnd();
-
-	//}
-	//pr = initial;
-
-
-	//BigLine1
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex3d(0., 0., 0.);
-
-	glColor3d(100, 0, 0);
-
-	double x_change = -1.25 * pr; //begin
-	double y_change = 0 * pr; // end
-	double z_change = 1 *pr;
-	double x_lin = 2.6 * pr / MAX_STEPS;
-	double y_lin = 0 * pr / MAX_STEPS;
-	double z_lin = 0 *pr / MAX_STEPS;
-
-
-	for (size_t i = 0; i < MAX_STEPS; i++)
-	{
-		if (i != 0)
-		{
-			x_change = x_change + x_lin;
-			y_change = y_change + y_lin;
-			z_change = z_change + z_lin;
-		}
-		
-		glVertex3f(x_change, y_change, z_change);
-
-	}
-	glEnd();
-
-	start = pr;
-	step = 0.05;
-	for (size_t i = 0; i < MAX_STEPS; i++)
-	{
-		
-		x_change = -1.25 * pr; //begin
-		y_change = 0 * pr; // end
-		z_change = 1 * pr;
-		x_lin = 2.6 * pr / MAX_STEPS;
-		y_lin = 0 * pr / MAX_STEPS;
-		z_lin = 0 * pr / MAX_STEPS;
-
-		pr += step;
-		double x_change1 = -1.25 * pr; //begin
-		double y_change1 = 0 * pr; // end
-		double z_change1 = 1 * pr;
-		double x_lin1 = 2.6 * pr / MAX_STEPS;
-		double y_lin1 = 0 * pr / MAX_STEPS;
-		double z_lin1 = 0 * pr / MAX_STEPS;
-		
-		glBegin(GL_TRIANGLE_STRIP);
-
-		for (size_t i = 0; i < MAX_STEPS; i++)
-		{
-
-			if (i != 0)
-			{
-				x_change = x_change + x_lin;
-				y_change = y_change + y_lin;
-				z_change = z_change + z_lin;
-			}
-
-			glVertex3f(x_change, y_change, z_change);
-
-			
-			if (i != 0)
-			{
-				x_change1 = x_change1 + x_lin1;
-				y_change1 = y_change1 + y_lin1;
-				z_change1 = z_change1 + z_lin1;
-			}
-
-			glVertex3f(x_change1, y_change1, z_change1);
-		}
-
-		start = pr + step;
-		glEnd();
-
-	}
-	pr = initial;
-
-
-	//снизил точку на x z на 1 и изменил 
-	//BigLine2
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex3d(0., 0., 0.);
-	glColor3d(100, 0, 0);
-
-	x_change = 0.0* pr; //begin
-	y_change = -1.25 * pr; // end
-	z_change = 1.0 * pr;
-	x_lin = 0.0  * pr / MAX_STEPS;
-	y_lin = 2.6 * pr / MAX_STEPS;
-	z_lin = 0.0 * pr / MAX_STEPS;
-
-	for (size_t i = 0; i < MAX_STEPS +1; i++)
-	{
-
-		if (i != 0)
-		{
-			x_change = x_change + x_lin;
-			y_change = y_change + y_lin;
-			z_change = z_change + z_lin;
-		}
-		glVertex3f(x_change, y_change, z_change);
-
-		//std::cout << x << std::endl;
-	}
-	glEnd();
-
-	start = pr;
-	step = 0.05;
-	for (size_t i = 0; i < MAX_STEPS; i++)
-	{
-
-		x_change = 0.0* pr; //begin
-		y_change = -1.25 * pr; // end
-		z_change = 1.0 * pr;
-		x_lin = 0.0  * pr / MAX_STEPS;
-		y_lin = 2.6 * pr / MAX_STEPS;
-		z_lin = 0.0 * pr / MAX_STEPS;
-
-		pr += step;
-		double x_change1 = 0.0* pr; //begin
-		double y_change1 = -1.25 * pr; // end
-		double z_change1 = 1.0 * pr;
-		double x_lin1 = 0.0  * pr / MAX_STEPS;
-		double y_lin1 = 2.6 * pr / MAX_STEPS;
-		double z_lin1 = 0.0 * pr / MAX_STEPS;
-
-		glBegin(GL_TRIANGLE_STRIP);
-
-
-		for (size_t i = 0; i < MAX_STEPS; i++)
-		{
-
-			if (i != 0)
-			{
-				x_change = x_change + x_lin;
-				y_change = y_change + y_lin;
-				z_change = z_change + z_lin;
-			}
-
-			glVertex3f(x_change, y_change, z_change);
-
-
-			if (i != 0)
-			{
-				x_change1 = x_change1 + x_lin1;
-				y_change1 = y_change1 + y_lin1;
-				z_change1 = z_change1 + z_lin1;
-			}
-
-			glVertex3f(x_change1, y_change1, z_change1);
-		}
-
-		start = pr + step;
-		glEnd();
-
-	}
-	pr = initial;
-
-	
-	//LittleLine1
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex3d(0., 0., 0.);
-
-	glColor3d(0, 100, 0);
-
-	x_change = 0 * pr; //begin
-	y_change = -1.25 * pr; // end
-	z_change = 1 * pr;
-	x_lin = 0.7 * pr / MAX_STEPS;
-	y_lin = -0.7 * pr / MAX_STEPS;
-	z_lin = 0 * pr / MAX_STEPS;
-
-	for (size_t i = 0; i < MAX_STEPS; i++)
-	{
-
-		if (i != 0)
-		{
-			x_change = x_change + x_lin;
-			y_change = y_change + y_lin;
-			z_change = z_change + z_lin;
-		}
-		glVertex3f(x_change, y_change, z_change);
-
-		//std::cout << x << std::endl;
-	}
-	glEnd();
-
-	start = pr;
-	step = 0.05;
-	for (size_t i = 0; i < MAX_STEPS; i++)
-	{
-
-		x_change = 0 * pr; //begin
-		y_change = -1.25 * pr; // end
-		z_change = 1 * pr;
-		x_lin = 0.7 * pr / MAX_STEPS;
-		y_lin = -0.7 * pr / MAX_STEPS;
-		z_lin = 0 * pr / MAX_STEPS;
-
-		pr += step;
-		double x_change1 = 0 * pr; //begin
-		double y_change1 = -1.25 * pr; // end
-		double z_change1 = 1 * pr;
-		double x_lin1 = 0.7 * pr / MAX_STEPS;
-		double y_lin1 = -0.7 * pr / MAX_STEPS;
-		double z_lin1 = 0 * pr / MAX_STEPS;
-
-		glBegin(GL_TRIANGLE_STRIP);
-
-		for (size_t i = 0; i < MAX_STEPS; i++)
-		{
-
-			if (i != 0)
-			{
-				x_change = x_change + x_lin;
-				y_change = y_change + y_lin;
-				z_change = z_change + z_lin;
-			}
-
-			glVertex3f(x_change, y_change, z_change);
-
-
-			if (i != 0)
-			{
-				x_change1 = x_change1 + x_lin1;
-				y_change1 = y_change1 + y_lin1;
-				z_change1 = z_change1 + z_lin1;
-			}
-
-			glVertex3f(x_change1, y_change1, z_change1);
-		}
-
-		start = pr + step;
-		glEnd();
-
-	}
-	pr = initial;
-	
-	//LittleLine2
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex3d(0., 0., 0.);
-
-	glColor3d(0, 100, 0);
-
-	x_change = 0 * pr; //begin
-	y_change = -1.25 * pr; // end
-	z_change = 1 * pr;
-	x_lin = -0.7 * pr / MAX_STEPS;
-	y_lin = -0.7 * pr / MAX_STEPS;
-	z_lin = 0 * pr / MAX_STEPS;
-
-	for (size_t i = 0; i < MAX_STEPS; i++)
-	{
-
-		if (i != 0)
-		{
-			x_change = x_change + x_lin;
-			y_change = y_change + y_lin;
-			z_change = z_change + z_lin;
-		}
-		glVertex3f(x_change, y_change, z_change);
-
-		//std::cout << x << std::endl;
-	}
-	glEnd();
-
-	start = pr;
-	step = 0.05;
-	for (size_t i = 0; i < MAX_STEPS; i++)
-	{
-
-		x_change = 0 * pr; //begin
-		y_change = -1.25 * pr; // end
-		z_change = 1 * pr;
-		x_lin = -0.7 * pr / MAX_STEPS;
-		y_lin = -0.7 * pr / MAX_STEPS;
-		z_lin = 0 * pr / MAX_STEPS;
-
-		pr += step;
-		double x_change1 = 0 * pr; //begin
-		double y_change1 = -1.25 * pr; // end
-		double z_change1 = 1 * pr;
-		double x_lin1 = -0.7 * pr / MAX_STEPS;
-		double y_lin1 = -0.7 * pr / MAX_STEPS;
-		double z_lin1 = 0 * pr / MAX_STEPS;
-
-		glBegin(GL_TRIANGLE_STRIP);
-
-
-		for (size_t i = 0; i < MAX_STEPS; i++)
-		{
-
-			if (i != 0)
-			{
-				x_change = x_change + x_lin;
-				y_change = y_change + y_lin;
-				z_change = z_change + z_lin;
-			}
-
-			glVertex3f(x_change, y_change, z_change);
-
-
-			if (i != 0)
-			{
-				x_change1 = x_change1 + x_lin1;
-				y_change1 = y_change1 + y_lin1;
-				z_change1 = z_change1 + z_lin1;
-			}
-
-			glVertex3f(x_change1, y_change1, z_change1);
-		}
-
-		start = pr + step;
-		glEnd();
-
-	}
-	pr = initial;
-
-	//LittleLine3
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex3d(0., 0., 0.);
-	glColor3d(0, 100, 0);
-
-	x_change = 0 * pr; //begin
-	y_change = 1.24 * pr; // end
-	z_change = 1 * pr;
-	x_lin = -0.7 * pr / MAX_STEPS;
-	y_lin = 0.7 * pr / MAX_STEPS;
-	z_lin = 0 * pr / MAX_STEPS;
-
-	for (size_t i = 0; i < MAX_STEPS; i++)
-	{
-
-		if (i != 0)
-		{
-			x_change = x_change + x_lin;
-			y_change = y_change + y_lin;
-			z_change = z_change + z_lin;
-		}
-		glVertex3f(x_change, y_change, z_change);
-
-		//std::cout << x << std::endl;
-	}
-	glEnd();
-
-	start = pr;
-	step = 0.05;
-	for (size_t i = 0; i < MAX_STEPS; i++)
-	{
-
-		x_change = 0 * pr; //begin
-		y_change = 1.24 * pr; // end
-		z_change = 1 * pr;
-		x_lin = -0.7 * pr / MAX_STEPS;
-		y_lin = 0.7 * pr / MAX_STEPS;
-		z_lin = 0 * pr / MAX_STEPS;
-
-		pr += step;
-		double x_change1 = 0 * pr; //begin
-		double y_change1 = 1.24 * pr; // end
-		double z_change1 = 1 * pr;
-		double x_lin1 = -0.7 * pr / MAX_STEPS;
-		double y_lin1 = 0.7 * pr / MAX_STEPS;
-		double z_lin1 = 0 * pr / MAX_STEPS;
-
-		glBegin(GL_TRIANGLE_STRIP);
-
-
-		for (size_t i = 0; i < MAX_STEPS; i++)
-		{
-
-			if (i != 0)
-			{
-				x_change = x_change + x_lin;
-				y_change = y_change + y_lin;
-				z_change = z_change + z_lin;
-			}
-
-			glVertex3f(x_change, y_change, z_change);
-
-
-			if (i != 0)
-			{
-				x_change1 = x_change1 + x_lin1;
-				y_change1 = y_change1 + y_lin1;
-				z_change1 = z_change1 + z_lin1;
-			}
-
-			glVertex3f(x_change1, y_change1, z_change1);
-		}
-
-		start = pr + step;
-		glEnd();
-
-	}
-	pr = initial;
-
-
-	//LittleLine4
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex3d(0., 0., 0.);
-	glColor3d(0, 100, 0);
-
-	x_change = 0 * pr; //begin
-	y_change = 1.24 * pr; // end
-	z_change = 1 * pr;
-	x_lin = 0.7 * pr / MAX_STEPS;
-	y_lin = 0.7 * pr / MAX_STEPS;
-	z_lin = 0 * pr / MAX_STEPS;
-
-	for (size_t i = 0; i < MAX_STEPS; i++)
-	{
-
-		if (i != 0)
-		{
-			x_change = x_change + x_lin;
-			y_change = y_change + y_lin;
-			z_change = z_change + z_lin;
-		}
-
-		glVertex3f(x_change, y_change, z_change);
-
-		//std::cout << x << std::endl;
-	}
-	glEnd();
-
-	start = pr;
-	step = 0.05;
-	for (size_t i = 0; i < MAX_STEPS; i++)
-	{
-
-		x_change = 0 * pr; //begin
-		y_change = 1.24 * pr; // end
-		z_change = 1 * pr;
-		x_lin = 0.7 * pr / MAX_STEPS;
-		y_lin = 0.7 * pr / MAX_STEPS;
-		z_lin = 0 * pr / MAX_STEPS;
-
-		pr += step;
-		double x_change1 = 0 * pr; //begin
-		double y_change1 = 1.24 * pr; // end
-		double z_change1 = 1 * pr;
-		double x_lin1 = 0.7 * pr / MAX_STEPS;
-		double y_lin1 = 0.7 * pr / MAX_STEPS;
-		double z_lin1 = 0 * pr / MAX_STEPS;
-
-		glBegin(GL_TRIANGLE_STRIP);
-
-
-		for (size_t i = 0; i < MAX_STEPS; i++)
-		{
-
-			if (i != 0)
-			{
-				x_change = x_change + x_lin;
-				y_change = y_change + y_lin;
-				z_change = z_change + z_lin;
-			}
-
-			glVertex3f(x_change, y_change, z_change);
-
-
-			if (i != 0)
-			{
-				x_change1 = x_change1 + x_lin1;
-				y_change1 = y_change1 + y_lin1;
-				z_change1 = z_change1 + z_lin1;
-			}
-
-			glVertex3f(x_change1, y_change1, z_change1);
-		}
-
-		start = pr + step;
-		glEnd();
-
-	}
-	pr = initial;
-
+		bizie1.drawBizie();
+		bizie2.drawBizie();
+
+		glColor3d(1, 0, 0);
+		line1.drawLine();
+		line2.drawLine();
+
+		glColor3d(0, 1, 0);
+		lLine1.drawLine();
+		lLine2.drawLine();
+		lLine3.drawLine();
+		lLine4.drawLine();
 	glPopMatrix();
 
-	////LittleLine1
-	//glBegin(GL_LINE_STRIP);
-	//glColor3d(100, 0, 0);
 
-	//amountSegments = 50;
-	//x = -2.0; //begin
-	//y = -1.0; // end
-	//lin = (y - x) / amountSegments;
-
-	//float z1 = -1.0; //begin
-	//float z2 = 0.0; // end
-	//float lin2 = (abs(z1) + abs(z2)) / amountSegments;
-	//z2 = (z2 - z1) / 2;
-
-	//for (size_t i = 0; i < amountSegments; i++)
-	//{
-	//	z1 = z1 + lin2;
-	//	x = x + lin;
-	//	glVertex3f(x, 2, z1);
-
-	//	//std::cout << x << std::endl;
-	//}
-	//glEnd();
-
-
-	////LittleLine2
-	//glBegin(GL_LINE_STRIP);
-	//glColor3d(100, 0, 0);
-
-	//amountSegments = 50;
-	//x = -2.0; //begin
-	//y = -1.0; // end
-	//lin = (y - x) / amountSegments;
-
-	//z1 = 1.0; //begin
-	//z2 = 0.0; // end
-	//lin2 = (z2 - z1) / amountSegments;
-
-
-	//for (size_t i = 0; i < amountSegments; i++)
-	//{
-	//	z1 = z1 + lin2;
-	//	x = x + lin;
-	//	glVertex3f(x, 2, z1);
-
-	//	//std::cout << x << std::endl;
-	//}
-	//glEnd();
-
-	////LittleLine3
-	//glBegin(GL_LINE_STRIP);
-	//glColor3d(100, 0, 0);
-
-	//amountSegments = 50;
-	//x = 3.0; //begin
-	//y = 4.0; // end
-	//lin = (y - x) / amountSegments;
-
-	//z1 = 0.0; //begin
-	//z2 = -1.0; // end
-	//lin2 = (z2 - z1) / amountSegments;
-
-	//for (size_t i = 0; i < amountSegments; i++)
-	//{
-	//	z1 = z1 + lin2;
-	//	x = x + lin;
-	//	glVertex3f(x, 2, z1);
-
-	//	//std::cout << x << std::endl;
-	//}
-	//glEnd();
-
-
-	////LittleLine4
-	//glBegin(GL_LINE_STRIP);
-	//glColor3d(100, 0, 0);
-
-	//amountSegments = 50;
-	//x = 3.0; //begin
-	//y = 4.0; // end
-	//lin = (y - x) / amountSegments;
-
-	//z1 = 0.0; //begin
-	//z2 = 1.0; // end
-	//lin2 = (z2 - z1) / amountSegments;
-
-	//for (size_t i = 0; i < amountSegments; i++)
-	//{
-	//	z1 = z1 + lin2;
-	//	x = x + lin;
-	//	glVertex3f(x, 2, z1);
-
-	//	//std::cout << x << std::endl;
-	//}
-	//glEnd();
-
-
-	////bizie3
-	//double g_spX = 0.84;
-	//double g_spY = 0.0;
-	//double g_spZ = 3.0; //-
-	//double g_cp1X = 0.44;
-	//double g_cp1Y = 0.0;
-	//double g_cp1Z = 1.65; // -
-	//double g_cp2X = -0.3;
-	//double g_cp2Y = 0.0;
-	//double g_cp2Z = 1.65; //-
-	//double g_epX = -0.88;
-	//double g_epY = 0.0;
-	//double g_epZ = 3.0; // -
-
-	//double x_start = 1.0;
-	//double y_start = -1.0;
-	//double z_start = 1.0;
-
-	//double y_change = 1;
-	//double radi_y = 4.07 - 0.415; //stan
-	//double point_y = radi_y * sinf(y_change);
-
-	////double x_change = 0.5;
-	////double radi_x = 0.86; //stan
-	////double point_x = radi_x * cosf(x_change);
-	////std::cout << point << std::endl;
-
-	//double pr = 1; // от ноля до + бесконечности(надо додумать в зависимости от проекции)
-	//
-	//for (double i = -1; i < 2; i = i + 2)
-	//{
-
-	//	if (i == - 1) {
-
-	//		g_vStartPoint = { (x_start - g_spX) * pr,  (y_start - g_spY + point_y + y_change) * pr,  (z_start - g_spZ * i) * pr };   // Стартовая точка кривой
-	//		g_vControlPoint1 = { (x_start - g_cp1X) * pr,  (y_start - g_cp1Y + point_y) * pr,  (z_start - g_cp1Z * i) * pr };   // Первая контрольная точка
-	//		g_vControlPoint2 = { (x_start - g_cp2X) * pr,  (y_start - g_cp2Y + point_y) * pr,  (z_start - g_cp2Z * i) * pr };   // Вторая контрольная точка
-	//		g_vEndPoint = { (x_start - g_epX) * pr,  (y_start - g_epY + point_y + y_change) * pr,  (z_start - g_epZ * i) * pr };   // Конечная точка кривой
-
-	//	}
-	//	else
-	//	{
-	//		g_vStartPoint = { (x_start - g_spX) * pr,  (y_start - g_spY) * pr,  (z_start - g_spZ * i) * pr };   // Стартовая точка кривой
-	//		g_vControlPoint1 = { (x_start - g_cp1X) * pr,  (y_start - g_cp1Y + y_change*i) * pr,  (z_start - g_cp1Z * i - 0.5) * pr };   // Первая контрольная точка
-	//		g_vControlPoint2 = { (x_start - g_cp2X) * pr,  (y_start - g_cp2Y + y_change*i) * pr,  (z_start - g_cp2Z * i - 0.5) * pr };   // Вторая контрольная точка
-	//		g_vEndPoint = { (x_start - g_epX) * pr,  (y_start - g_epY) * pr,  (z_start - g_epZ * i) * pr };   // Конечная точка кривой
-
-	//	}
-	//	
-	//	
-	//	vPoint = { 0.0f, 0.0f, 0.0f };
-
-	//	g_CurrentTime = 0.0f; // Текущая позиция сферы на кривой (между 0 и 1)
-
-	//	glBegin(GL_LINE_STRIP);
-	//	for (double t = 0; t <= (1 + (1.0f / MAX_STEPS)); t += 1.0f / MAX_STEPS)
-	//	{
-	//		vPoint = PointOnCurve(g_vStartPoint, g_vControlPoint1, g_vControlPoint2, g_vEndPoint, t);
-	//		glVertex3f(vPoint.x, vPoint.y, vPoint.z);
-	//	}
-
-	//	glEnd();
-	//	
-	//}
-	
-	
-
-
-
-
-	//glPointSize(5);
-	//glEnable(GL_POINT_SMOOTH);
-	//glBegin(GL_POINTS);
-	//glColor3d(0, 0, 0);
-	//glVertex3d(1, 2, 0); // первая точка
-	//glEnd();
-
-	// изменение будет порпорциаональное при росте или уменьшении
-	// построить согласно точке в пространстве исходя из соотношений
-	// построить согласно углу для y z
-
-	//// Oval1
-	//glBegin(GL_LINE_STRIP);
-	//glColor3d(100, 0, 0);
-
-	//int amountSegments = 100;
-	//int r = 1;
-	//int r2 = 2;
-	//float x = 1;
-	//float y = -4;
-
-	///*float y1 = 1;
-	//float y2 = -2;
-	//float lin3 = (y2 - y1) / amountSegments;
-	//y1 = 0;*/
-
-	//for (size_t i = 0; i < amountSegments / 2 + 1; i++)
-	//{
-	//	//y1 = y1 + lin3;
-	//	if (i > amountSegments / 2 * 0.15 && i < amountSegments / 2 * 0.85)
-	//	{
-	//		float angle = 2.0 * 3.1415926 * float(i) / float(amountSegments);
-
-	//		float dx = r * cosf(angle);
-	//		float dy = r2 * sinf(angle);
-	//		/*float dz = y1 * atan(angle);
-	//		y1 = y1 + lin3;*/
-	//		glVertex3f(x + dx, 2 , y + dy);
-
-	//	}
-
-	//}
-	//glEnd();
-
-	//// Oval2
-	//glBegin(GL_LINE_STRIP);
-	//glColor3d(100, 0, 0);
-
-	//amountSegments = 50;
-	//r = -1;
-	//r2 = -2;
-	//x = 1;
-	//y = 4;
-
-	//for (size_t i = 0; i < amountSegments / 2 + 1; i++)
-	//{
-	//	
-	//	if (i > amountSegments/2 * 0.15 && i < amountSegments / 2 * 0.85)
-	//	{
-	//		float angle = 2.0 * 3.1415926 * float(i) / float(amountSegments);
-
-	//		float dx = r * cosf(angle);
-	//		float dy = r2 * sinf(angle);
-
-	//		glVertex3f(x + dx, 2, y + dy);
-
-	//	}
-	//
-
-	//}
-	//glEnd();
-
-	////bizie3
-	//double g_spX = 0.84;
-	//double g_spY = 0.0;
-	//double g_spZ = 3.0; //-
-	//double g_cp1X = 0.44;
-	//double g_cp1Y = 0.0;
-	//double g_cp1Z = 1.65; // -
-	//double g_cp2X = -0.3;
-	//double g_cp2Y = 0.0;
-	//double g_cp2Z = 1.65; //-
-	//double g_epX = -0.88;
-	//double g_epY = 0.0;
-	//double g_epZ = 3.0; // -
-
-	//double x_start = 1.0;
-	//double y_start = -1.0;
-	//double z_start = 1.0;
-
-	//double pr = 1; // от ноля до + бесконечности(надо додумать в зависимости от проекции)
-
-	//for (double i = -1; i < 2; i = i + 2)
-	//{
-
-	//	g_vStartPoint = { (x_start - g_spX) * pr,  (y_start - g_spY) * pr,  (z_start - g_spZ * i) * pr };   // Стартовая точка кривой
-	//	g_vControlPoint1 = { (x_start - g_cp1X) * pr,  (y_start - g_cp1Y ) * pr,  (z_start - g_cp1Z * i) * pr };   // Первая контрольная точка
-	//	g_vControlPoint2 = { (x_start - g_cp2X) * pr,  (y_start - g_cp2Y ) * pr,  (z_start - g_cp2Z * i) * pr };   // Вторая контрольная точка
-	//	g_vEndPoint = { (x_start - g_epX) * pr,  (y_start - g_epY) * pr,  (z_start - g_epZ * i) * pr };   // Конечная точка кривой
-
-	//	vPoint = { 0.0f, 0.0f, 0.0f };
-
-	//	g_CurrentTime = 0.0f; // Текущая позиция сферы на кривой (между 0 и 1)
-
-	//	glBegin(GL_LINE_STRIP);
-	//	for (double t = 0; t <= (1 + (1.0f / MAX_STEPS)); t += 1.0f / MAX_STEPS)
-	//	{
-	//		vPoint = PointOnCurve(g_vStartPoint, g_vControlPoint1, g_vControlPoint2, g_vEndPoint, t);
-	//		glVertex3f(vPoint.x, vPoint.y, vPoint.z);
-	//	}
-
-	//	glEnd();
-
-	//}
-	//
-	//double x = 0;
-	//double y = 0;
-	//double amountSegments = 0;
-
-	////BigLine1
-	//glBegin(GL_LINE_STRIP);
-	//glColor3d(100, 0, 0);
-
-	//amountSegments = 50;
-	//x = -2.05; //begin
-	//y = 2.02; // end
-	//float lin = (abs(x) + abs(y)) / amountSegments;
-
-	//for (size_t i = 0; i < amountSegments; i++)
-	//{
-	//	
-	//	x = x + lin;
-	//	glVertex3f(1, 2, x);
-	//	
-
-	//	//std::cout << x << std::endl;
-	//}
-	//glEnd();
-
-	////BigLine2
-	//glBegin(GL_LINE_STRIP);
-	//glColor3d(100, 0, 0);
-
-	//amountSegments = 50;
-	//x = -1.05; //begin
-	//y = 3.02; // end
-	//lin = (abs(x) + abs(y)) / amountSegments;
-
-	//for (size_t i = 0; i < amountSegments; i++)
-	//{
-
-	//	x = x + lin;
-	//	glVertex3f(x, 2, 0);
-
-
-	//	//std::cout << x << std::endl;
-	//}
-	//glEnd();
-
-
-	////LittleLine1
-	//glBegin(GL_LINE_STRIP);
-	//glColor3d(100, 0, 0);
-
-	//amountSegments = 50;
-	//x = -2.0; //begin
-	//y = -1.0; // end
-	//lin = (y - x) / amountSegments;
-
-	//float z1 = -1.0; //begin
-	//float z2 = 0.0; // end
-	//float lin2 = (abs(z1) + abs(z2)) / amountSegments;
-	//z2 = (z2 - z1) / 2;
-
-	//for (size_t i = 0; i < amountSegments; i++)
-	//{
-	//	z1 = z1 + lin2;
-	//	x = x + lin;
-	//	glVertex3f(x, 2, z1);
-
-	//	//std::cout << x << std::endl;
-	//}
-	//glEnd();
-
-
-	////LittleLine2
-	//glBegin(GL_LINE_STRIP);
-	//glColor3d(100, 0, 0);
-
-	//amountSegments = 50;
-	//x = -2.0; //begin
-	//y = -1.0; // end
-	//lin = (y - x) / amountSegments;
-
-	//z1 = 1.0; //begin
-	//z2 = 0.0; // end
-	//lin2 = (z2 - z1) / amountSegments;
-
-
-	//for (size_t i = 0; i < amountSegments; i++)
-	//{
-	//	z1 = z1 + lin2;
-	//	x = x + lin;
-	//	glVertex3f(x, 2, z1);
-
-	//	//std::cout << x << std::endl;
-	//}
-	//glEnd();
-
-	////LittleLine3
-	//glBegin(GL_LINE_STRIP);
-	//glColor3d(100, 0, 0);
-
-	//amountSegments = 50;
-	//x = 3.0; //begin
-	//y = 4.0; // end
-	//lin = (y - x) / amountSegments;
-
-	//z1 = 0.0; //begin
-	//z2 = -1.0; // end
-	//lin2 = (z2 - z1) / amountSegments;
-
-	//for (size_t i = 0; i < amountSegments; i++)
-	//{
-	//	z1 = z1 + lin2;
-	//	x = x + lin;
-	//	glVertex3f(x, 2, z1);
-
-	//	//std::cout << x << std::endl;
-	//}
-	//glEnd();
-
-
-	////LittleLine4
-	//glBegin(GL_LINE_STRIP);
-	//glColor3d(100, 0, 0);
-
-	//amountSegments = 50;
-	//x = 3.0; //begin
-	//y = 4.0; // end
-	//lin = (y - x) / amountSegments;
-
-	//z1 = 0.0; //begin
-	//z2 = 1.0; // end
-	//lin2 = (z2 - z1) / amountSegments;
-
-	//for (size_t i = 0; i < amountSegments; i++)
-	//{
-	//	z1 = z1 + lin2;
-	//	x = x + lin;
-	//	glVertex3f(x, 2, z1);
-
-	//	//std::cout << x << std::endl;
-	//}
-	//glEnd();
-
-	//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	glPopMatrix();
 	auxSwapBuffers();
 }
@@ -1587,6 +552,13 @@ void main()
 	// Если нужно статическое изображение
 	// следующая строка может быть закомментирована
 	auxIdleFunc(display);
+
+	//auxKeyFunc(AUX_LEFT, Key_LEFT);
+	//auxKeyFunc(AUX_RIGHT, Key_RIGHT);
+	auxKeyFunc(AUX_UP, Key_UP);
+	auxKeyFunc(AUX_DOWN, Key_DOWN);
+
+
 	// В случае изменения размеров окна – поступает
 	// соответствующее сообщение
 	// В Windows - это WM_SIZE.
